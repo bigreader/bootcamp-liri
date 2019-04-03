@@ -1,10 +1,15 @@
 require("dotenv").config();
 var fs      = require('fs'); //builtin
-var spotify = require('node-spotify-api');
 var axios   = require('axios');
-var moment  = require('moment');
 var chalk   = require('chalk');
+var moment  = require('moment');
+var Spotify = require('node-spotify-api');
 var keys    = require("./keys.js");
+
+var spotify = new Spotify({
+	id: keys.spotify.id,
+	secret: keys.spotify.secret
+});
 
 log('start');
 
@@ -56,8 +61,7 @@ function showBand(query) {
 			var venue = event.venue.name + ' in ' + event.venue.city + ', ' + event.venue.country;
 			var date = moment(event.datetime, 'YYYY-MM-DD[T]hh:mm:ss');
 			log('result', date.format('MM/DD/YYYY') + ' - ' + venue);
-		})
-
+		});
 
 	}).catch(err => log('error', err));
 }
@@ -67,7 +71,28 @@ function showSong(query) {
 }
 
 function showMovie(query) {
-	log('result', 'Movie: ' + query);
+	var url = 'http://www.omdbapi.com/?apikey=' + keys.omdb + '&t=' + query
+	log('request', url);
+
+	axios.get(url).then(resp => {
+		var movie = resp.data;
+
+		log('result', movie.Title + ' (' + movie.Year + ')');
+
+		var ratingRT = movie.Ratings.find(rating => {
+			return (rating.Source === 'Rotten Tomatoes');
+		});
+		if (ratingRT) {
+			log('more', 'IMDb: ' + movie.imdbRating + ' - RT: ' + ratingRT.Value);
+		} else {
+			log('more', 'IMDb: ' + movie.imdbRating);
+		}
+
+		log('more', movie.Country + ' - ' + movie.Language);
+		log('more', 'With ' + movie.Actors);
+		log('more', movie.Plot);
+
+	}).catch(err => log('error', err));
 }
 
 
@@ -75,10 +100,10 @@ function showMovie(query) {
 function readPreset() {
 	fs.readFile('./random.txt', 'utf8', (err, data) => {
 		// get arg string, split on comma, remove unneeded quotes
-		var args = data.split(',').map(x => x.replace('"', ''));
+		var args = data.split(',').map(x => x.replace('"', '')); //TODO: replace all
 
 		if (args[0] === 'do-what-it-says') {
-			console.err('Infinite loop detected! Try a different command in random.txt.');
+			log('error', 'Infinite loop detected! Try a different command in random.txt.');
 			return;
 		}
 
@@ -110,7 +135,12 @@ function log(type, text) {
 
 		case 'result':
 		console.log(chalk.bold(text));
-		writeLog(text);
+		writeLog('- ' + text);
+		break;
+
+		case 'more':
+		console.log(text);
+		writeLog('  ' + text);
 		break;
 
 		case 'error':
