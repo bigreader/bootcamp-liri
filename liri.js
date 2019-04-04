@@ -68,7 +68,30 @@ function showBand(query) {
 }
 
 function showSong(query) {
-	
+	log('request', '(Spotify Search)');
+
+	spotify.search({ type: 'track', query: query }, function(err, resp) {
+	  if (err) {
+	    log('error', err);
+			return;
+	  }
+
+	  var results = resp.tracks.items;
+	  if (results.length === 0) {
+	  	log('empty', 'Movie not found.');
+			return;
+	  }
+	  var song = results[0];
+
+	  log('result', song.name);
+	  log('more', song.album.name);
+	  log('more', song.artists.map(a => a.name).join(', '));
+
+		if (song.preview_url) {
+		  log('more', 'Preview: ' + song.preview_url);
+		}
+
+	});
 }
 
 function showMovie(query) {
@@ -77,6 +100,11 @@ function showMovie(query) {
 
 	axios.get(url).then(resp => {
 		var movie = resp.data;
+
+		if (movie.Response !== 'True') {
+			log('empty', 'Movie not found.');
+			return;
+		}
 
 		log('result', movie.Title + ' (' + movie.Year + ')');
 
@@ -132,7 +160,7 @@ function log(type, text) {
 
 		case 'empty':
 		console.log(chalk.italic(text));
-		queueLog(text);
+		queueLog('~ ' + text);
 		break;
 
 		case 'result':
