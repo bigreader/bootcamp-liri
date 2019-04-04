@@ -68,7 +68,7 @@ function showBand(query) {
 }
 
 function showSong(query) {
-	log('result', 'Song: ' + query);
+	
 }
 
 function showMovie(query) {
@@ -118,11 +118,11 @@ function log(type, text) {
 	switch (type) {
 
 		case 'start':
-		writeLog('');
+		queueLog('');
 		break;
 
 		case 'command':
-		writeLog('> ' + text);
+		queueLog('> ' + text);
 		break;
 
 		case 'request':
@@ -132,22 +132,22 @@ function log(type, text) {
 
 		case 'empty':
 		console.log(chalk.italic(text));
-		writeLog(text);
+		queueLog(text);
 		break;
 
 		case 'result':
 		console.log(chalk.bold(text));
-		writeLog('- ' + text);
+		queueLog('- ' + text);
 		break;
 
 		case 'more':
 		console.log(text);
-		writeLog('  ' + text);
+		queueLog('  ' + text);
 		break;
 
 		case 'error':
 		console.error(chalk.red(text));
-		writeLog('Error!\n' + text);
+		queueLog('Error!\n' + text);
 		process.exitCode = 1;
 		break;
 
@@ -163,16 +163,19 @@ function log(type, text) {
 	}
 }
 
-function writeLog(text) {
-	
-}
-
 function queueLog(text) {
 	logQueue.push(text);
 }
 
 function commitLog() {
 	logQueue.push('');
-	fs.appendFile('./log.txt', logQueue.join('\n'), err => { if (err) throw err });
+	try {
+		fs.appendFileSync('./log.txt', logQueue.join('\n'));
+	} catch (err) {
+		console.log(err);
+	}
 	logQueue = [];
 }
+
+// do something when app is closing
+process.on('exit', commitLog);
