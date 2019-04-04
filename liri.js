@@ -53,15 +53,19 @@ function showBand(query) {
 
 	axios.get(url).then(resp => {
 		var events = resp.data;
-		if (events.length === 0) {
+		if (!Array.isArray(events)) {
 			log('empty', 'Band not found.');
+			return;
+		}
+		if (events.length === 0) {
+			log('empty', 'No upcoming events.');
 			return;
 		}
 
 		events.forEach(event => {
 			var venue = event.venue.name + ' in ' + event.venue.city + ', ' + event.venue.country;
 			var date = moment(event.datetime, 'YYYY-MM-DD[T]hh:mm:ss');
-			log('result', date.format('MM/DD/YYYY') + ' - ' + venue);
+			log('result', date.format('MM/DD/YYYY') + '  ' + venue);
 		});
 
 	}).catch(err => log('error', err));
