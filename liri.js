@@ -10,6 +10,7 @@ var spotify = new Spotify({
 	id: keys.spotify.id,
 	secret: keys.spotify.secret
 });
+var logQueue = [];
 
 log('start');
 
@@ -115,6 +116,7 @@ function readPreset() {
 
 function log(type, text) {
 	switch (type) {
+
 		case 'start':
 		writeLog('');
 		break;
@@ -146,6 +148,7 @@ function log(type, text) {
 		case 'error':
 		console.error(chalk.red(text));
 		writeLog('Error!\n' + text);
+		process.exitCode = 1;
 		break;
 
 		case 'data':
@@ -161,5 +164,15 @@ function log(type, text) {
 }
 
 function writeLog(text) {
-	fs.appendFile('./log.txt', text + '\n', err => { if (err) throw err });
+	
+}
+
+function queueLog(text) {
+	logQueue.push(text);
+}
+
+function commitLog() {
+	logQueue.push('');
+	fs.appendFile('./log.txt', logQueue.join('\n'), err => { if (err) throw err });
+	logQueue = [];
 }
