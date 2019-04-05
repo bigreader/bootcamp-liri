@@ -24,15 +24,15 @@ function runCommand(command, query) {
 
 	switch (command) {
 		case 'concert-this':
-		showBand(query);
+		showBand(query || 'maroon5');
 		break;
 
 		case 'spotify-this-song':
-		showSong(query);
+		showSong(query || 'the sign ace of base');
 		break;
 
 		case 'movie-this':
-		showMovie(query);
+		showMovie(query || 'mr nobody');
 		break;
 
 		case 'do-what-it-says':
